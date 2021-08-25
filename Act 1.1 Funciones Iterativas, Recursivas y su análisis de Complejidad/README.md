@@ -2,7 +2,7 @@
 
 **Análisis de complejidad temporal**
 
-El algoritmo recorre n pasos ya que usa un ciclo que va i = 1 hatsa n, por los que su complejidad es O(n) para el peor de los casos.
+El algoritmo recorre n pasos ya que usa un ciclo que va i = 1 hasta n, por los que su complejidad es O(n) para el peor de los casos.
 
 # suma Recursiva
 
