@@ -275,16 +275,29 @@ void Node<T>::postorder(std::stringstream &aux) const{
 ////////////////////////////////////////////////////////////////////////////////////
 
 template <class T>
+void Node<T>::showlevel(std::stringstream &aux, int level) const {
+	if(level == 0){
+		if (aux.tellp() != 1) {
+				aux << " ";
+		}
+		aux << value;
+	}
+  if (left != 0) {
+		left->showlevel(aux, level -1);
+	}
+  if (right != 0) {
+		right->showlevel(aux, level -1);
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////////
+
+template <class T>
 void Node<T>::levelbylevel(std::stringstream &aux) const {
-    aux << value;
-    if (left != 0) {
-    aux << " ";
-        left->levelbylevel(aux);
-    }
-    if (right != 0) {
-    aux << " ";
-        right->levelbylevel(aux);
-    }
+	int level = height();
+  for(int i = 0; i < level; i++){
+			showlevel(aux, i);
+	}
 }
 
 ///////////////////////////////////////BST//////////////////////////////////////////////
