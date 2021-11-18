@@ -1,134 +1,211 @@
-/*
-*  autor: Benjamin Valdes Aguirre
-*  fecha: Diciembre 2020
-*  programa: act 4.1 Implementacion Grafos
-*  desc: estos programas son solciones parciales a algunos de
-*  las actividades planteadas en el curso TC1031
-*
-*
-*  Extiende este archivo para completar tu soución.
-*/
+#ifndef GRAPH_H
+#define GRAPH_H
 
-#ifndef Graph_H_
-#define Graph_H_
-
-#include <string>
-#include <stdio.h>
-#include <sstream>
-#include <fstream>
 #include <iostream>
+#include <cstring>
+#include <fstream>
 #include <vector>
-#include <queue>
-#include <stack>
-#include <list>
-#include <algorithm>
+#include <string>
+#include <bits/stdc++.h>
 
 using namespace std;
 
+string followPath(vector<int>);
 
-class Graph {
-private:
-		int edgesList;
-		int edgesMat;
-		int nodes;
-    vector<int> *adjList;
-		int *adjMatrix;
-		//vector<Type> *vect = new vector<Type>
+class Graph{
+    private:
+        int ver;
+        int cor;
+        vector<vector<int>> adjList;
+        vector<vector<int>> adjMat;
 
-public:
-		void loadGraphMat(string, int, int);
-		Graph(int);
-		Graph();
-		void addEdgeAdjMatrix(int, int);
-		string printAdjMat();
-		string printAdjMat_clean();
-		bool contains(list<int>, int);
-		void sortAdjList();
+    public:
+        Graph(){}
+        void loadGraphMat(string file, int nodes, int arc);
+        string printAdjMat();
+
+        void loadGraphList(string file, int nodes, int arc);
+        string printAdjList();
+
+        string DFS(int x, int z);
+        string BFS(int x, int z);
 };
 
-
-void Graph::loadGraphMat(string name, int a, int b){
-	adjMatrix = new int [a*b];
-	nodes = a;
-	for (int i = 0; i < a*b; i++)
-		adjMatrix[i] = 0;
-		string line;
-		ifstream lee (name);
-		int u, v;
-		if (lee.is_open()){
-			while (getline(lee, line)){
-				u = stoi(line.substr(1,1));
-				v = stoi(line.substr(4,1));
-				addEdgeAdjMatrix(u,v);
-			}
-			lee.close(); // Closes the file
-		} else {
-			cout << "Unable to open file";
-		}
-}
-
-Graph::Graph() {
-	edgesList = edgesMat = 0;
-}
-
-Graph::Graph(int n) {
-	nodes = n;
-	adjList = new vector<int>[nodes];
-	adjMatrix = new int [nodes*nodes];
-	for (int i = 0; i < nodes*nodes; i++)
-		adjMatrix[i] = 0;
-	edgesList = edgesMat = 0;
-}
-
-void Graph::addEdgeAdjMatrix(int u, int v){
-	adjMatrix[u*nodes+v] = 1;
-	adjMatrix[v*nodes+u] = 1;
-	edgesMat++;
-}
-
-string Graph::printAdjList(){
-	  stringstream aux;
-		for (int i = 0; i < nodes; i++){
-	        aux << "vertex "
-	             << i << " :";
-	        for (int j = 0; j < adjList[i].size(); j ++){
-							 aux << " " << adjList[i][j];
-					}
-	        aux << " ";
+void Graph::loadGraphMat(string file, int nodes, int arc){
+    ver = nodes;
+    cor = arc;
+    for(int i = 0; i<nodes; i++){
+        vector<int> mat(nodes, 0);
+        adjMat.push_back(mat);
     }
-		return aux.str();
+    ifstream arch;
+    arch.open(file);
+    while(arch.good()){
+        string x;
+        string y;
+        getline(arch, x, ',');
+		if(x != ""){
+			 getline(arch, y, '\n');
+			x = x.substr(1, x.length()-1);
+			y = y.substr(1, y.length()-2);
+			int u = stoi(x);
+			int v = stoi(y);
+			adjMat[u][v] = 1;
+			adjMat[v][u] = 1;
+		}
+    }
+}
 
+void Graph::loadGraphList(string file, int nodes, int arc){
+    ver = nodes;
+    cor = arc;
+    for(int i = 0; i < nodes; i++){
+        vector<int> lists;
+        adjList.push_back(lists);
+    }
+    ifstream arch;
+    arch.open(file);
+    while(arch.good()){
+        string x;
+        string y;
+        getline(arch, x, ',');
+		if (x != ""){
+			getline(arch, y, '\n');
+			x = x.substr(1, x.length()-1);
+			y = y.substr(1, y.length()-2);
+			int u = stoi(x);
+			int v = stoi(y);
+			adjList[u].push_back(v);
+			adjList[v].push_back(u);
+		}
+    }
+}
+
+string Graph::BFS(int x, int z){
+    vector<vector<int>> queue;
+	vector<vector<int>> visited;
+	int pos = x;
+	int parent = -1;
+	bool band = false;
+
+	while (true){
+		visited.push_back(vector<int>({parent, pos}));
+		if (pos == z){
+			band = true;
+			break;
+		}
+		for (int i=0; i < adjList[pos].size(); i++){
+			int val = adjList[pos][i];
+			bool avisited = false;
+			for (int j = 0; j<visited.size(); j++){
+				if (visited[j][1] == val){
+					avisited = true;
+					break;
+				}
+			}
+			if (!avisited) queue.push_back(vector<int>({pos, val}));
+		}
+		parent = queue[0][0];
+		pos = queue[0][1];
+		queue.erase(queue.begin());
+	}
+	vector<int> path;
+	int find = z;
+	do {
+		for (int i=0; i < visited.size(); i++){
+			if (visited[i][1] == find){
+				path.insert(path.begin(), find);
+				find = visited[i][0];
+			}
+		}
+	} while (find != -1);
+	vector<int> converted_visited;
+	for (int i=0; i<visited.size(); i++){
+		converted_visited.push_back(visited[i][1]);
+	}
+	string svisited = followPath(converted_visited);
+	string spath = followPath(path);
+	string data = "visited: " + svisited + "path: " + spath;
+	data = data.substr(0, data.size()-1);
+	return data;
+}
+
+string Graph::DFS(int x, int z){
+	vector<vector<int>> adjList2;
+	for (int i=0; i<adjList.size(); i++){
+		adjList2.push_back(adjList[i]);
+	}
+	vector<int> stack;
+	vector<int> visited;
+	bool band = false;
+	int pos = x;
+
+	while (!band && !(visited.size() >= ver)){
+		bool avisited = false;
+		for (int i=0; i<visited.size(); i++){
+			if(pos == visited[i]) {
+				avisited = true;
+				break;
+			}
+		}
+		if (!avisited) visited.push_back(pos);
+		if (pos == z){
+			band = true;
+			break;
+		}
+		for (int i = 0; i < adjList2[pos].size(); i++){
+			for (int j = 0; j < visited.size(); j++){
+				if(adjList2[pos][i] == visited[j])
+					adjList2[pos].erase(adjList2[pos].begin()+i);
+			}
+		}
+		if (adjList2[pos].size() > 0){
+			stack.push_back(pos);
+			int temp_index = pos;
+			pos = adjList2[pos].back();
+			adjList2[temp_index].pop_back();
+		}
+		else {
+			pos = stack[stack.size()-1];
+			stack.pop_back();
+		}
+	}
+	stack.push_back(pos);
+	string svisited = followPath(visited);
+	string spath = followPath(stack);
+	string data = "visited: " + svisited + "path: " + spath;
+	data = data.substr(0, data.size()-1);
+	return data;
 }
 
 string Graph::printAdjMat(){
-	stringstream aux;
-	for (int i = 0; i < nodes; i++){
-	   for (int j = 0; j < nodes; j++){
-			 aux << adjMatrix[i*nodes+j] << " ";
-		 }
-  }
-	return aux.str();
+    string data = "";
+	for(int i = 0; i < adjMat.size(); i++){
+		for(int j = 0; j < adjMat[i].size(); j++){
+			data = data + to_string(adjMat[i][j]) + " ";
+		}
+	}
+	return data;
 }
 
-string Graph::printAdjMat_clean(){
-	stringstream aux;
-	aux << "\n nodes \t|";
-	for (int i = 0; i < nodes; i++){
-			aux << "\t" << i ;
+string Graph::printAdjList(){
+    string data = "";
+	for(int i = 0; i < adjList.size(); i++){
+		data += "vertex " + to_string(i) + " : ";
+		sort(adjList[i].begin(), adjList[i].end());
+		for(int j = 0; j < adjList[i].size(); j++){
+			data += to_string(adjList[i][j]) + " ";
+		}
 	}
-	aux << "\n";
-	for (int i = 0; i < nodes; i++){
-			aux << "__________";
-	}
-	aux << "\n";
-	for (int i = 0; i < nodes; i++){
-		 aux << i << "\t|";
-	   for (int j = 0; j < nodes; j++){
-			 aux << "\t" << adjMatrix[i*nodes+j];
-		 }
-	   aux << "\n";
-  }
-	return aux.str();
+	return data;
 }
 
-#endif /* Graph_H_ */
+string followPath(vector<int> v){
+	string data = "";
+	for (int i = 0; i < v.size(); i++){
+		data = data + to_string(v[i]) + " ";
+	}
+	return data;
+}
+
+#endif
